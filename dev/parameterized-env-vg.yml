@@ -1,0 +1,23 @@
+trigger:
+  branches: 
+    include:
+
+    - main
+    - develop
+    - release/*
+
+pool: Default
+
+
+parameters: 
+- name: targetEnv
+  default: string
+  values:
+
+  - Dev
+  - qa
+  - UAT
+  - Staging
+  - Production
+
+  
