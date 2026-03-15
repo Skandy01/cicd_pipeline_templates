@@ -1,0 +1,110 @@
+trigger:
+  branches:
+    include:
+      - main
+      - feature/*
+      - develop/*
+
+variables:
+- name: buildDir
+  value: '$(System.DefaultWorkingDirectory)/build/'
+
+pool: Azure Pipelines
+
+stages:
+  - stage: Build
+    displayName: Install Dependencies and Build ReactUI App
+
+    jobs:
+      - job: Install_Dependencies_and_Build_ReactUI
+        displayName: Install dependencies and build
+        steps:
+        - checkout: self
+          clean: true
+        - task: NodeTool@0
+          displayName: Install NodeJS 16.x
+          inputs:
+            versionSource: 'spec'
+            versionSpec: '16.x'
+        - task: PowerShell@2
+          displayName: npm Install
+          inputs:
+            targetType: 'inline'
+            script: 'npm install'
+
+        - task: PowerShell@2
+          displayName: Build npm
+          inputs:
+            targetType: 'inline'
+            script: 'npm run build'
+
+        - task: ArchiveFiles@2
+          displayName: Archive Artifacts
+          inputs:
+            rootFolderOrFile: '$(buildDir)'
+            includeRootFolder: true
+            archiveType: 'zip'
+            archiveFile: '$(System.DefaultWorkingDirectory)/build.zip'
+            replaceExistingArchive: false
+
+        - task: PublishPipelineArtifact@1
+          displayName: Publish Build Artefacts
+          inputs:
+            targetPath: '$(buildDir)'
+            artifact: 'todoapp-build-artifact'
+            publishLocation: 'pipeline'
+
+  - stage: Lint
+    displayName: Linting
+
+    jobs:
+      - job: Linting
+        displayName: Install Biome and Lint React App
+
+        steps:
+        - checkout: self
+          clean: true
+        - task: PowerShell@2
+          displayName: Install and Run Biome
+          inputs:
+            targetType: 'inline'
+            script: |
+              # -----------------------------
+              # PowerShell Script for Biome Setup in React Project
+              # -----------------------------
+              
+              Write-Host "Checking Node installation..."
+              if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+                  Write-Host "Node.js is not installed. Please install Node.js first!" -ForegroundColor Red
+                  exit 1
+              }
+              
+              Write-Host "Installing Biome (local install recommended)..."
+              npm install --save-dev @biomejs/biome
+              
+              if ($LASTEXITCODE -ne 0) {
+                  Write-Host "Biome installation failed!" -ForegroundColor Red
+                  exit 1
+              }
+              
+              Write-Host "Initializing Biome configuration..."
+              npx biome init
+              
+              if ($LASTEXITCODE -ne 0) {
+                  Write-Host "Biome init failed!" -ForegroundColor Red
+                  exit 1
+              }
+              
+              Write-Host "Running Biome Lint..."
+              npx biome lint .
+              
+              Write-Host "Running Biome Format..."
+              npx biome format .
+              
+              Write-Host "Running Biome Check (lint + format)..."
+              npx biome check .
+              
+              Write-Host "Applying fixes (safe fixes)..."
+              npx biome check --write
+              
+              Write-Host "Biome setup and linting complete!" -ForegroundColor Green

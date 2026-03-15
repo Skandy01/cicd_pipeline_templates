@@ -1,0 +1,16 @@
+parameters:
+  - name: nodeVersion
+    type: string
+    default: '20.x'
+
+steps:
+  - task: NodeTool@0
+    displayName: Install NodeJS
+    inputs: 
+      versionSpec: ${{parameters.nodeversion}}
+      checkLatest: true
+
+  - script: |
+      node -v
+      npm -v
+    displayName: Verify NodeJS and NPM installation
