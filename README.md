@@ -111,7 +111,7 @@ resources:
   repositories:
     - repository: cicdTemplates
       type: github
-      name: BhabyaBharti/azure-devops-pipeline-templates-enterprise
+      name: Skandy01/azure-devops-pipeline-templates-enterprise
       ref: refs/tags/v1.0.0
 
 stages:
@@ -138,5 +138,5 @@ This model scales cleanly across large organizations.
 
 👤 Author
 
-Bhabya Bharti
+Skand Tripathi
 DevOps Engineer | Platform Engineering | CI/CD | Azure | DevSecOps
